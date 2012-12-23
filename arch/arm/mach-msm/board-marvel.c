@@ -31,10 +31,15 @@
 #include <linux/android_pmem.h>
 #include <linux/mmc/sdio_ids.h>
 #include <linux/gpio_event.h>
+#include <linux/slab.h>
 #include <linux/mtd/nand.h>
 #include <linux/mtd/partitions.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
+#ifdef CONFIG_USB_G_ANDROID
+#include <linux/usb/android.h>
+#include <mach/usbdiag.h>
+#endif
 
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
@@ -724,70 +729,6 @@ static void marvel_disable_usb_charger(void)
 	htc_battery_charger_disable();
 }
 
-#ifdef CONFIG_USB_ANDROID
-static uint32_t usb_ID_PIN_input_table[] = {
-	PCOM_GPIO_CFG(MARVEL_GPIO_USB_ID_PIN, 0, GPIO_INPUT, GPIO_NO_PULL, GPIO_4MA),
-};
-
-static uint32_t usb_ID_PIN_ouput_table[] = {
-	PCOM_GPIO_CFG(MARVEL_GPIO_USB_ID_PIN, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_4MA),
-};
-
-void config_marvel_usb_id_gpios(bool output)
-{
-	if (output) {
-		config_gpio_table(usb_ID_PIN_ouput_table,
-			ARRAY_SIZE(usb_ID_PIN_ouput_table));
-		gpio_set_value(MARVEL_GPIO_USB_ID_PIN, 1);
-	} else
-		config_gpio_table(usb_ID_PIN_input_table,
-			ARRAY_SIZE(usb_ID_PIN_input_table));
-}
-
-static struct msm_hsusb_platform_data msm_hsusb_pdata = {
-	.phy_init_seq		= marvel_phy_init_seq,
-	.phy_reset		= marvel_phy_reset,
-	.usb_id_pin_gpio	= MARVEL_GPIO_USB_ID_PIN,
-	.disable_usb_charger	= marvel_disable_usb_charger,
-	.accessory_detect	= 1, /* detect by ID pin gpio */
-	.config_usb_id_gpios	= config_marvel_usb_id_gpios,
-};
-
-static struct usb_mass_storage_platform_data mass_storage_pdata = {
-	.nluns		= 1,
-	.vendor		= "HTC",
-	.product	= "Android Phone",
-	.release	= 0x0100,
-};
-
-static struct platform_device usb_mass_storage_device = {
-	.name	= "usb_mass_storage",
-	.id	= -1,
-	.dev	= {
-		.platform_data = &mass_storage_pdata,
-	},
-};
-
-static struct android_usb_platform_data android_usb_pdata = {
-	.vendor_id	= 0x0bb4,
-	.product_id	= 0x0cb0,
-	.version	= 0x0100,
-	.product_name		= "Android Phone",
-	.manufacturer_name	= "HTC",
-	.num_products = ARRAY_SIZE(usb_products),
-	.products = usb_products,
-	.num_functions = ARRAY_SIZE(usb_functions_all),
-	.functions = usb_functions_all,
-};
-
-static struct platform_device android_usb_device = {
-	.name	= "android_usb",
-	.id		= -1,
-	.dev		= {
-		.platform_data = &android_usb_pdata,
-	},
-};
-#endif
 
 static struct akm8975_platform_data compass_platform_data = {
 	.layouts = MARVEL_LAYOUTS,
@@ -1475,26 +1416,7 @@ static void __init marvel_init(void)
 	/*
 	msm_change_usb_id(0x0bb4, 0x0c10);
 	*/
-#ifdef CONFIG_USB_FUNCTION
-	msm_add_usb_id_pin_gpio(MARVEL_GPIO_USB_ID_PIN);
-	msm_add_usb_devices(marvel_phy_reset, NULL);
-#endif
 
-#ifdef CONFIG_USB_ANDROID
-	android_usb_pdata.products[0].product_id =
-		android_usb_pdata.product_id;
-	android_usb_pdata.serial_number = board_serialno();
-	msm_hsusb_pdata.serial_number = board_serialno();
-	if ((sku_id & 0xFFF00) == 0x2AB00) {
-		msm_hsusb_pdata.accessory_detect = 2; /* detect by ADC */
-		msm_hsusb_pdata.use_microp_adc = 1;
-	}
-	msm_device_hsusb.dev.platform_data = &msm_hsusb_pdata;
-	config_marvel_usb_id_gpios(0);
-	platform_device_register(&msm_device_hsusb);
-	platform_device_register(&usb_mass_storage_device);
-	platform_device_register(&android_usb_device);
-#endif
 	msm_add_mem_devices(&pmem_setting);
 
 #ifdef CONFIG_MICROP_COMMON
