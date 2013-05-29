@@ -336,7 +336,8 @@ EXPORT_SYMBOL(clk_set_rate);
 
 long clk_round_rate(struct clk *clk, unsigned long rate)
 {
-	return clk->ops->round_rate(clk->id, rate);
+	//return clk->ops->round_rate(clk->id, rate);
+	return rate;
 }
 EXPORT_SYMBOL(clk_round_rate);
 

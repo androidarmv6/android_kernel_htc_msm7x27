@@ -257,6 +257,23 @@ void __init msm_add_mem_devices(struct msm_pmem_setting *setting)
 		platform_device_register(&pmem_adsp_device);
 	}
 
+#if defined(CONFIG_MSM_HW3D)
+	if (setting->pmem_gpu0_size && setting->pmem_gpu1_size) {
+		struct resource *res;
+
+		res = platform_get_resource_byname(&hw3d_device, IORESOURCE_MEM,
+						   "smi");
+		res->start = setting->pmem_gpu0_start;
+		res->end = res->start + setting->pmem_gpu0_size - 1;
+
+		res = platform_get_resource_byname(&hw3d_device, IORESOURCE_MEM,
+						   "ebi");
+		res->start = setting->pmem_gpu1_start;
+		res->end = res->start + setting->pmem_gpu1_size - 1;
+		platform_device_register(&hw3d_device);
+	}
+#endif
+
 	if (setting->pmem_camera_size) {
 		pmem_camera_pdata.start = setting->pmem_camera_start;
 		pmem_camera_pdata.size = setting->pmem_camera_size;
@@ -720,6 +737,23 @@ char * board_get_mfg_sleep_gpio_table(void)
         return mfg_gpio_table;
 }
 EXPORT_SYMBOL(board_get_mfg_sleep_gpio_table);
+
+static char *qwerty_color_tag = NULL;
+static int __init board_set_qwerty_color_tag(char *get_qwerty_color)
+{
+	if (strlen(get_qwerty_color))
+		qwerty_color_tag = get_qwerty_color;
+	else
+		qwerty_color_tag = NULL;
+	return 1;
+}
+__setup("androidboot.qwerty_color=", board_set_qwerty_color_tag);
+
+void board_get_qwerty_color_tag(char **ret_data)
+{
+	*ret_data = qwerty_color_tag;
+}
+EXPORT_SYMBOL(board_get_qwerty_color_tag);
 
 static char *emmc_tag;
 static int __init board_set_emmc_tag(char *get_hboot_emmc)

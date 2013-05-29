@@ -164,5 +164,6 @@ int __init chacha_init_keypad(void);
 int chacha_init_mmc(unsigned int sys_rev);
 int __init chacha_init_panel(void);
 int __init chacha_wifi_init(void);
+extern int panel_type;
 #endif /* GUARD */
 
