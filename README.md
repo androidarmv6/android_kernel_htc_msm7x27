@@ -1,8 +1,8 @@
-OWL-Predator v1.1
+MarvelKernel v1.0
 ==============
 
 
-for HTC Marvel/MarvelC / HTC Aria / HTC ChaCha / HTC Legend
+for HTC Aria/ChaCha/Legend/Marvel/MarvelC/Salsa
 ==============================================================
 
 Changelog:
@@ -21,10 +21,12 @@ Changelog:
 
 Configs:
 ===========
-* Marvel_defconfig
+* Marvel_defconfig (HTC Wildfire S)
+* Icong_defconfig (HTC Salsa)
 - Add support CIFS/NFS
 - Add zRam
 - Add LZO
+- Various compression methods
 
 
 Features:
@@ -77,6 +79,7 @@ Credits:
 ===========
 - Andreas Schneider (Cryptomilk from based)
 - eoghan2t9
+- OWLProject
 
 ==============
-                                                by OWL Project [Based on CRYPTOMILK Kernel]
+                                                by the MarvellousTeam [Based on CRYPTOMILK/OWLProject Kernel]
